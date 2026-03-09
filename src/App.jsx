@@ -21,21 +21,19 @@ const JackLogo = ({ size = 22 }) => (
   </svg>
 )
 
+// Categorías unificadas para Autos y Motos
 const CAT = {
-  NAC:  { label:'Nacional',     color:'#1D9B4A', bg:'#E8F8EE' },
-  MKT:  { label:'Comercial',    color:'#B5620A', bg:'#FEF3E2' },
-  AUTO: { label:'Automotor',    color:'#0066CC', bg:'#E5F0FB' },
-  MOTO: { label:'Motociclismo', color:'#9B1D6A', bg:'#F8E8F4' },
+  NAC:  { label:'Nacional / Feriado', color:'#1D9B4A', bg:'#E8F8EE' },
+  MKT:  { label:'Fecha Comercial',    color:'#B5620A', bg:'#FEF3E2' },
+  SECT: { label:'Sector',             color:'#0066CC', bg:'#E5F0FB' },
 }
 
 const MESES = ['Todos','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
 
 // ── Sheet modal ───────────────────────────────────────────────────────────────
 function Sheet({ title, row, tab, onSave, onClose }) {
-  const [val, setVal] = useState(row ?? { mes:'Enero', fecha:'', efemeride:'', categoria: tab==='motos'?'MOTO':'AUTO', idea:'' })
-  const cats = tab === 'motos'
-    ? { NAC:'Nacional', MKT:'Comercial', MOTO:'Motociclismo' }
-    : { NAC:'Nacional', MKT:'Comercial', AUTO:'Automotor' }
+  const [val, setVal] = useState(row ?? { mes:'Enero', fecha:'', efemeride:'', categoria:'SECT', idea:'' })
+  const cats = { NAC:'Nacional / Feriado', MKT:'Fecha Comercial', SECT:'Sector' }
 
   const S   = { width:'100%', background:'#F5F5F7', border:'1px solid #E5E5EA', borderRadius:10, padding:'11px 13px', color:'#1C1C1E', fontSize:15, fontFamily:'inherit', outline:'none', boxSizing:'border-box' }
   const Sel = { ...S, appearance:'none', WebkitAppearance:'none' }
@@ -190,9 +188,7 @@ function TabView({ tab, accent }) {
     flash('Eliminado')
   }
 
-  const cats = tab === 'motos'
-    ? { NAC:'Nacional', MKT:'Comercial', MOTO:'Motociclismo' }
-    : { NAC:'Nacional', MKT:'Comercial', AUTO:'Automotor' }
+  const cats = { NAC:'Nacional / Feriado', MKT:'Fecha Comercial', SECT:'Sector' }
 
   const filtered = rows.filter(r =>
     (filter==='Todos'||r.mes===filter) &&
