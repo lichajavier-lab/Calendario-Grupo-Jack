@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from './supabase'
-import { DATA_AUTOS, DATA_MOTOS } from './data'
+import { DATA } from './data'
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 const EditIcon  = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -9,31 +9,23 @@ const TrashIcon = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="no
 const SearchIcon= () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
 const PlusIcon  = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
 
-const JackLogo = ({ size = 22 }) => (
-  <svg width={size} height={size} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M50 50 L38 10 L62 10 Z" fill="#C0111A"/>
-    <path d="M50 50 L85 28 L72 50 Z" fill="#C0111A"/>
-    <path d="M50 50 L90 62 L72 80 Z" fill="#C0111A"/>
-    <path d="M50 50 L62 90 L38 90 Z" fill="#C0111A"/>
-    <path d="M50 50 L15 72 L28 50 Z" fill="#C0111A"/>
-    <path d="M50 50 L10 38 L28 20 Z" fill="#C0111A"/>
-    <circle cx="50" cy="50" r="14" fill="white"/>
-  </svg>
-)
-
-// Categorías unificadas para Autos y Motos
 const CAT = {
   NAC:  { label:'Nacional / Feriado', color:'#1D9B4A', bg:'#E8F8EE' },
   MKT:  { label:'Fecha Comercial',    color:'#B5620A', bg:'#FEF3E2' },
   SECT: { label:'Sector',             color:'#0066CC', bg:'#E5F0FB' },
 }
 
+const VEH = {
+  AMBOS: { label:'🚗🏍️', color:'#6E6E73', bg:'#F2F2F7' },
+  AUTOS: { label:'🚗 Autos', color:'#007AFF', bg:'#E5F0FB' },
+  MOTOS: { label:'🏍️ Motos', color:'#9B1D6A', bg:'#F8E8F4' },
+}
+
 const MESES = ['Todos','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
 
 // ── Sheet modal ───────────────────────────────────────────────────────────────
-function Sheet({ title, row, tab, onSave, onClose }) {
-  const [val, setVal] = useState(row ?? { mes:'Enero', fecha:'', efemeride:'', categoria:'SECT', idea:'' })
-  const cats = { NAC:'Nacional / Feriado', MKT:'Fecha Comercial', SECT:'Sector' }
+function Sheet({ title, row, onSave, onClose }) {
+  const [val, setVal] = useState(row ?? { mes:'Enero', fecha:'', efemeride:'', categoria:'SECT', vehiculo:'AMBOS', idea:'' })
 
   const S   = { width:'100%', background:'#F5F5F7', border:'1px solid #E5E5EA', borderRadius:10, padding:'11px 13px', color:'#1C1C1E', fontSize:15, fontFamily:'inherit', outline:'none', boxSizing:'border-box' }
   const Sel = { ...S, appearance:'none', WebkitAppearance:'none' }
@@ -64,11 +56,23 @@ function Sheet({ title, row, tab, onSave, onClose }) {
             <div style={{ fontSize:11, fontWeight:600, color:'#8E8E93', marginBottom:5, letterSpacing:'.4px', textTransform:'uppercase' }}>Efeméride</div>
             <input value={val.efemeride} onChange={e=>setVal({...val,efemeride:e.target.value})} placeholder="Nombre del evento" style={S}/>
           </div>
-          <div style={{ marginBottom:14 }}>
-            <div style={{ fontSize:11, fontWeight:600, color:'#8E8E93', marginBottom:5, letterSpacing:'.4px', textTransform:'uppercase' }}>Categoría</div>
-            <select value={val.categoria} onChange={e=>setVal({...val,categoria:e.target.value})} style={Sel}>
-              {Object.entries(cats).map(([k,v])=><option key={k} value={k}>{v}</option>)}
-            </select>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'0 12px' }}>
+            <div style={{ marginBottom:14 }}>
+              <div style={{ fontSize:11, fontWeight:600, color:'#8E8E93', marginBottom:5, letterSpacing:'.4px', textTransform:'uppercase' }}>Categoría</div>
+              <select value={val.categoria} onChange={e=>setVal({...val,categoria:e.target.value})} style={Sel}>
+                <option value="NAC">Nacional / Feriado</option>
+                <option value="MKT">Fecha Comercial</option>
+                <option value="SECT">Sector</option>
+              </select>
+            </div>
+            <div style={{ marginBottom:14 }}>
+              <div style={{ fontSize:11, fontWeight:600, color:'#8E8E93', marginBottom:5, letterSpacing:'.4px', textTransform:'uppercase' }}>Vehículo</div>
+              <select value={val.vehiculo} onChange={e=>setVal({...val,vehiculo:e.target.value})} style={Sel}>
+                <option value="AMBOS">🚗🏍️ Ambos</option>
+                <option value="AUTOS">🚗 Autos</option>
+                <option value="MOTOS">🏍️ Motos</option>
+              </select>
+            </div>
           </div>
           <div style={{ marginBottom:20 }}>
             <div style={{ fontSize:11, fontWeight:600, color:'#8E8E93', marginBottom:5, letterSpacing:'.4px', textTransform:'uppercase' }}>Idea de contenido</div>
@@ -88,16 +92,20 @@ function Sheet({ title, row, tab, onSave, onClose }) {
 // ── Card ──────────────────────────────────────────────────────────────────────
 function Card({ row, onEdit, onToggle, onDelete }) {
   const cat = CAT[row.categoria] || CAT.MKT
+  const veh = VEH[row.vehiculo]  || VEH.AMBOS
   return (
-    <div style={{ background:'#fff', borderRadius:14, padding:'14px 16px', marginBottom:8, boxShadow:'0 1px 4px rgba(0,0,0,.06)', opacity:row.publicado?.58:1, transition:'opacity .2s' }}>
+    <div style={{ background:'#fff', borderRadius:14, padding:'14px 16px', marginBottom:8, boxShadow:'0 1px 4px rgba(0,0,0,.06)', opacity:row.publicado ? .55 : 1, transition:'opacity .2s' }}>
       <div style={{ display:'flex', gap:12, alignItems:'flex-start' }}>
         <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:5, paddingTop:3, minWidth:34 }}>
           <div style={{ width:7, height:7, borderRadius:'50%', background:cat.color, flexShrink:0 }}/>
           <span style={{ fontSize:10, color:'#AEAEB2', fontWeight:600, letterSpacing:'.2px', textAlign:'center', lineHeight:1.2 }}>{row.fecha}</span>
         </div>
         <div style={{ flex:1, minWidth:0 }}>
-          <div style={{ fontSize:15, fontWeight:600, color:'#1C1C1E', letterSpacing:'-.2px', lineHeight:1.35, marginBottom:4 }}>{row.efemeride}</div>
-          <span style={{ display:'inline-block', fontSize:11, fontWeight:600, color:cat.color, background:cat.bg, padding:'2px 8px', borderRadius:6, letterSpacing:'.2px', marginBottom:6 }}>{cat.label}</span>
+          <div style={{ fontSize:15, fontWeight:600, color:'#1C1C1E', letterSpacing:'-.2px', lineHeight:1.35, marginBottom:5 }}>{row.efemeride}</div>
+          <div style={{ display:'flex', gap:5, flexWrap:'wrap', marginBottom:6 }}>
+            <span style={{ fontSize:11, fontWeight:600, color:cat.color, background:cat.bg, padding:'2px 8px', borderRadius:6 }}>{cat.label}</span>
+            <span style={{ fontSize:11, fontWeight:600, color:veh.color, background:veh.bg, padding:'2px 8px', borderRadius:6 }}>{veh.label}</span>
+          </div>
           <p style={{ fontSize:13, color:'#6E6E73', lineHeight:1.55, margin:0 }}>{row.idea}</p>
         </div>
         <div style={{ display:'flex', flexDirection:'column', gap:5, flexShrink:0 }}>
@@ -119,15 +127,15 @@ function Card({ row, onEdit, onToggle, onDelete }) {
   )
 }
 
-// ── Tab View ──────────────────────────────────────────────────────────────────
-function TabView({ tab, accent }) {
-  const TABLE = tab === 'autos' ? 'fechas_autos' : 'fechas_motos'
-  const SEED  = tab === 'autos' ? DATA_AUTOS : DATA_MOTOS
+// ── App ───────────────────────────────────────────────────────────────────────
+export default function App() {
+  const TABLE = 'fechas_calendario'
 
   const [rows, setRows]       = useState([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter]   = useState('Todos')
-  const [catF, setCatF]       = useState('Todos')
+  const [mesFil, setMesFil]   = useState('Todos')
+  const [catFil, setCatFil]   = useState('Todos')
+  const [vehFil, setVehFil]   = useState('Todos')
   const [search, setSearch]   = useState('')
   const [showSearch, setShowSearch] = useState(false)
   const [editing, setEditing] = useState(null)
@@ -135,18 +143,15 @@ function TabView({ tab, accent }) {
   const [toast, setToast]     = useState(null)
   const searchRef = useRef(null)
 
-  const flash = m => { setToast(m); setTimeout(()=>setToast(null), 2000) }
+  const flash = m => { setToast(m); setTimeout(()=>setToast(null), 2200) }
 
-  // Load + seed if empty
   useEffect(() => {
     const load = async () => {
       setLoading(true)
       const { data, error } = await supabase.from(TABLE).select('*').order('id')
       if (error) { console.error(error); setLoading(false); return }
       if (data.length === 0) {
-        // Seed initial data
-        const toInsert = SEED.map(r => ({ ...r, publicado: false }))
-        const { data: inserted } = await supabase.from(TABLE).insert(toInsert).select()
+        const { data: inserted } = await supabase.from(TABLE).insert(DATA.map(r=>({...r, publicado:false}))).select()
         setRows(inserted || [])
       } else {
         setRows(data)
@@ -155,32 +160,31 @@ function TabView({ tab, accent }) {
     }
     load()
 
-    // Real-time subscription
     const channel = supabase
-      .channel(`${TABLE}_changes`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: TABLE }, payload => {
-        if (payload.eventType === 'INSERT') setRows(r => [...r, payload.new])
-        if (payload.eventType === 'UPDATE') setRows(r => r.map(x => x.id === payload.new.id ? payload.new : x))
-        if (payload.eventType === 'DELETE') setRows(r => r.filter(x => x.id !== payload.old.id))
+      .channel('calendario_changes')
+      .on('postgres_changes', { event:'*', schema:'public', table:TABLE }, payload => {
+        if (payload.eventType === 'INSERT') setRows(r=>[...r, payload.new])
+        if (payload.eventType === 'UPDATE') setRows(r=>r.map(x=>x.id===payload.new.id?payload.new:x))
+        if (payload.eventType === 'DELETE') setRows(r=>r.filter(x=>x.id!==payload.old.id))
       })
       .subscribe()
 
     return () => supabase.removeChannel(channel)
-  }, [TABLE])
+  }, [])
 
   const saveEdit = async (val) => {
     const { error } = await supabase.from(TABLE).update(val).eq('id', val.id)
-    if (!error) { setEditing(null); flash('Cambios guardados') }
+    if (!error) { setEditing(null); flash('Cambios guardados ✓') }
   }
 
   const saveNew = async (val) => {
-    const { error } = await supabase.from(TABLE).insert({ ...val, publicado: false })
-    if (!error) { setAdding(false); flash('Fecha agregada') }
+    const { error } = await supabase.from(TABLE).insert({ ...val, publicado:false })
+    if (!error) { setAdding(false); flash('Fecha agregada ✓') }
   }
 
   const toggle = async (id) => {
-    const row = rows.find(r => r.id === id)
-    await supabase.from(TABLE).update({ publicado: !row.publicado }).eq('id', id)
+    const row = rows.find(r=>r.id===id)
+    await supabase.from(TABLE).update({ publicado:!row.publicado }).eq('id', id)
   }
 
   const del = async (id) => {
@@ -188,107 +192,16 @@ function TabView({ tab, accent }) {
     flash('Eliminado')
   }
 
-  const cats = { NAC:'Nacional / Feriado', MKT:'Fecha Comercial', SECT:'Sector' }
-
   const filtered = rows.filter(r =>
-    (filter==='Todos'||r.mes===filter) &&
-    (catF==='Todos'||r.categoria===catF) &&
-    (!search||r.efemeride?.toLowerCase().includes(search.toLowerCase())||r.idea?.toLowerCase().includes(search.toLowerCase()))
+    (mesFil==='Todos' || r.mes===mesFil) &&
+    (catFil==='Todos' || r.categoria===catFil) &&
+    (vehFil==='Todos' || r.vehiculo===vehFil || r.vehiculo==='AMBOS') &&
+    (!search || r.efemeride?.toLowerCase().includes(search.toLowerCase()) || r.idea?.toLowerCase().includes(search.toLowerCase()))
   )
-  const grouped = filtered.reduce((a,r)=>{ (a[r.mes]??=[]).push(r); return a },{})
+
+  const grouped = filtered.reduce((a,r)=>{ (a[r.mes]??=[]).push(r); return a }, {})
   const done = rows.filter(r=>r.publicado).length
   const pct  = rows.length ? Math.round((done/rows.length)*100) : 0
-
-  return (
-    <div>
-      <div style={{ background:'rgba(245,245,247,.95)', borderBottom:'1px solid #E5E5EA' }}>
-        <div style={{ maxWidth:720, margin:'0 auto', padding:'10px 16px' }}>
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
-            <div style={{ display:'flex', gap:8 }}>
-              <button onClick={()=>{ setShowSearch(s=>!s); if(!showSearch) setTimeout(()=>searchRef.current?.focus(),80) }}
-                style={{ background:'#E5E5EA', border:'none', borderRadius:10, width:36, height:36, cursor:'pointer', color:'#6E6E73', display:'flex', alignItems:'center', justifyContent:'center' }}>
-                <SearchIcon/>
-              </button>
-              <button onClick={()=>setAdding(true)}
-                style={{ background:accent, border:'none', borderRadius:10, height:36, padding:'0 14px', color:'#fff', fontSize:13, fontWeight:600, fontFamily:'inherit', cursor:'pointer', display:'flex', alignItems:'center', gap:5 }}>
-                <PlusIcon/> Agregar fecha
-              </button>
-            </div>
-            <span style={{ fontSize:12, color:'#8E8E93', fontWeight:500 }}>{done}/{rows.length} publicadas · {pct}%</span>
-          </div>
-          <div style={{ height:3, background:'#E5E5EA', borderRadius:2 }}>
-            <div style={{ height:'100%', width:`${pct}%`, background:accent, borderRadius:2, transition:'width .5s ease' }}/>
-          </div>
-          {showSearch && (
-            <div style={{ marginTop:10 }}>
-              <input ref={searchRef} value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar efeméride o idea…"
-                style={{ width:'100%', background:'#fff', border:'1px solid #E5E5EA', borderRadius:11, padding:'10px 14px', fontSize:15, fontFamily:'inherit', outline:'none', color:'#1C1C1E' }}/>
-            </div>
-          )}
-        </div>
-        <div style={{ maxWidth:720, margin:'0 auto' }}>
-          <div className="scroll-x">
-            {MESES.map(m=>(
-              <button key={m} className="chip"
-                style={{ background:filter===m?accent:'#E5E5EA', color:filter===m?'#fff':'#6E6E73' }}
-                onClick={()=>setFilter(m)}>{m}</button>
-            ))}
-          </div>
-          <div style={{ display:'flex', gap:6, padding:'2px 16px 10px', flexWrap:'wrap' }}>
-            {[['Todos','Todas'], ...Object.entries(cats)].map(([k,lbl])=>{
-              const v = CAT[k]
-              const active = catF===k
-              return (
-                <button key={k} className="chip"
-                  style={{ background:active?(v?v.bg:accent):'#E5E5EA', color:active?(v?v.color:'#fff'):'#6E6E73', border:active&&v?`1.5px solid ${v.color}55`:'1.5px solid transparent' }}
-                  onClick={()=>setCatF(k)}>{lbl}</button>
-              )
-            })}
-          </div>
-        </div>
-      </div>
-
-      <div style={{ maxWidth:720, margin:'0 auto', padding:'12px 16px 100px' }}>
-        {loading
-          ? <div style={{ textAlign:'center', padding:'60px 0', color:'#8E8E93' }}>
-              <div style={{ fontSize:32, marginBottom:12 }}>⏳</div>
-              <div style={{ fontSize:15 }}>Cargando fechas…</div>
-            </div>
-          : Object.keys(grouped).length===0
-          ? <div style={{ textAlign:'center', padding:'64px 0', color:'#AEAEB2' }}>
-              <div style={{ fontSize:44, marginBottom:12 }}>{tab==='motos'?'🏍️':'🚗'}</div>
-              <div style={{ fontSize:16, fontWeight:500, color:'#6E6E73' }}>Sin resultados</div>
-              <div style={{ fontSize:13, marginTop:5 }}>Probá con otro filtro</div>
-            </div>
-          : Object.entries(grouped).map(([mes,items])=>(
-              <div key={mes}>
-                <div style={{ fontSize:12, fontWeight:700, color:'#8E8E93', letterSpacing:'.7px', textTransform:'uppercase', padding:'18px 2px 8px' }}>{mes}</div>
-                {items.map(row=><Card key={row.id} row={row} onEdit={setEditing} onToggle={toggle} onDelete={del}/>)}
-              </div>
-            ))
-        }
-      </div>
-
-      {editing && <Sheet title="Editar efeméride" row={editing} tab={tab} onSave={saveEdit} onClose={()=>setEditing(null)}/>}
-      {adding  && <Sheet title="Nueva efeméride"  row={null}    tab={tab} onSave={saveNew}  onClose={()=>setAdding(false)}/>}
-
-      {toast && (
-        <div style={{ position:'fixed', bottom:32, left:'50%', transform:'translateX(-50%)', background:'rgba(28,28,30,.94)', backdropFilter:'blur(16px)', color:'#fff', padding:'10px 22px', borderRadius:22, fontSize:14, fontWeight:500, zIndex:300, animation:'toastIn .2s cubic-bezier(.32,1,.28,1)', whiteSpace:'nowrap', boxShadow:'0 8px 32px rgba(0,0,0,.15)', letterSpacing:'-.1px' }}>
-          {toast}
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ── App ───────────────────────────────────────────────────────────────────────
-export default function App() {
-  const [tab, setTab] = useState('autos')
-
-  const tabs = [
-    { key:'autos', label:'Autos', icon:'🚗', accent:'#007AFF' },
-    { key:'motos', label:'Motos', icon:'🏍️', accent:'#9B1D6A' },
-  ]
 
   return (
     <div style={{ minHeight:'100dvh', background:'#F5F5F7', fontFamily:"-apple-system,'SF Pro Display',Helvetica,sans-serif", color:'#1C1C1E', WebkitFontSmoothing:'antialiased' }}>
@@ -310,27 +223,107 @@ export default function App() {
       {/* Header */}
       <div style={{ position:'sticky', top:0, zIndex:100, background:'rgba(245,245,247,.94)', backdropFilter:'blur(20px)', WebkitBackdropFilter:'blur(20px)', borderBottom:'1px solid #E5E5EA' }}>
         <div style={{ maxWidth:720, margin:'0 auto', padding:'0 16px' }}>
-          <div style={{ display:'flex', alignItems:'center', height:58 }}>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', height:58 }}>
             <div>
               <div style={{ fontSize:20, fontWeight:700, letterSpacing:'-.5px', lineHeight:1.15 }}>Grupo Jack</div>
               <div style={{ fontSize:13, color:'#8E8E93', letterSpacing:'-.1px', marginTop:1 }}>Calendario de Efemérides 2026</div>
             </div>
-          </div>
-          <div style={{ display:'flex', gap:2, background:'#E5E5EA', borderRadius:12, padding:3, marginBottom:12, width:'fit-content' }}>
-            {tabs.map(t=>(
-              <button key={t.key} onClick={()=>setTab(t.key)}
-                style={{ background:tab===t.key?'#fff':'transparent', border:'none', borderRadius:9, padding:'7px 20px', fontSize:14, fontWeight:600, fontFamily:'inherit', color:tab===t.key?t.accent:'#8E8E93', cursor:'pointer', boxShadow:tab===t.key?'0 1px 4px rgba(0,0,0,.1)':'none', display:'flex', alignItems:'center', gap:6, transition:'background .2s,color .2s,box-shadow .2s' }}>
-                <span>{t.icon}</span> {t.label}
+            <div style={{ display:'flex', gap:8 }}>
+              <button onClick={()=>{ setShowSearch(s=>!s); if(!showSearch) setTimeout(()=>searchRef.current?.focus(),80) }}
+                style={{ background:'#E5E5EA', border:'none', borderRadius:10, width:36, height:36, cursor:'pointer', color:'#6E6E73', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                <SearchIcon/>
               </button>
+              <button onClick={()=>setAdding(true)}
+                style={{ background:'#007AFF', border:'none', borderRadius:10, height:36, padding:'0 14px', color:'#fff', fontSize:13, fontWeight:600, fontFamily:'inherit', cursor:'pointer', display:'flex', alignItems:'center', gap:5 }}>
+                <PlusIcon/> Agregar
+              </button>
+            </div>
+          </div>
+
+          {showSearch && (
+            <div style={{ paddingBottom:10 }}>
+              <input ref={searchRef} value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar efeméride o idea…"
+                style={{ width:'100%', background:'#fff', border:'1px solid #E5E5EA', borderRadius:11, padding:'10px 14px', fontSize:15, fontFamily:'inherit', outline:'none', color:'#1C1C1E' }}/>
+            </div>
+          )}
+
+          {/* Progress */}
+          <div style={{ display:'flex', justifyContent:'flex-end', paddingBottom:6 }}>
+            <span style={{ fontSize:12, color:'#8E8E93', fontWeight:500 }}>{done}/{rows.length} publicadas · {pct}%</span>
+          </div>
+          <div style={{ height:3, background:'#E5E5EA', borderRadius:2, marginBottom:4 }}>
+            <div style={{ height:'100%', width:`${pct}%`, background:'#007AFF', borderRadius:2, transition:'width .5s ease' }}/>
+          </div>
+        </div>
+
+        {/* Filtro por mes */}
+        <div style={{ maxWidth:720, margin:'0 auto' }}>
+          <div className="scroll-x">
+            {MESES.map(m=>(
+              <button key={m} className="chip"
+                style={{ background:mesFil===m?'#007AFF':'#E5E5EA', color:mesFil===m?'#fff':'#6E6E73' }}
+                onClick={()=>setMesFil(m)}>{m}</button>
             ))}
+          </div>
+
+          {/* Filtros categoría + vehículo */}
+          <div style={{ display:'flex', gap:6, padding:'2px 16px 10px', flexWrap:'wrap' }}>
+            {/* Categoría */}
+            {[['Todos','Todas'], ['NAC','Nacional'], ['MKT','Comercial'], ['SECT','Sector']].map(([k,lbl])=>{
+              const v = CAT[k]
+              const active = catFil===k
+              return (
+                <button key={k} className="chip"
+                  style={{ background:active?(v?v.bg:'#007AFF'):'#E5E5EA', color:active?(v?v.color:'#fff'):'#6E6E73', border:active&&v?`1.5px solid ${v.color}55`:'1.5px solid transparent' }}
+                  onClick={()=>setCatFil(k)}>{lbl}</button>
+              )
+            })}
+            <div style={{ width:1, background:'#D1D1D6', margin:'0 2px' }}/>
+            {/* Vehículo */}
+            {[['Todos','Todos'], ['AUTOS','🚗 Autos'], ['MOTOS','🏍️ Motos']].map(([k,lbl])=>{
+              const active = vehFil===k
+              const color = k==='AUTOS'?'#007AFF':k==='MOTOS'?'#9B1D6A':'#6E6E73'
+              const bg    = k==='AUTOS'?'#E5F0FB':k==='MOTOS'?'#F8E8F4':'#E5E5EA'
+              return (
+                <button key={k} className="chip"
+                  style={{ background:active?bg:'#E5E5EA', color:active?color:'#6E6E73', border:active&&k!=='Todos'?`1.5px solid ${color}55`:'1.5px solid transparent' }}
+                  onClick={()=>setVehFil(k)}>{lbl}</button>
+              )
+            })}
           </div>
         </div>
       </div>
 
-      {tab==='autos'
-        ? <TabView key="autos" tab="autos" accent="#007AFF"/>
-        : <TabView key="motos" tab="motos" accent="#9B1D6A"/>
-      }
+      {/* Lista */}
+      <div style={{ maxWidth:720, margin:'0 auto', padding:'12px 16px 100px' }}>
+        {loading
+          ? <div style={{ textAlign:'center', padding:'60px 0', color:'#8E8E93' }}>
+              <div style={{ fontSize:32, marginBottom:12 }}>⏳</div>
+              <div style={{ fontSize:15 }}>Cargando fechas…</div>
+            </div>
+          : Object.keys(grouped).length===0
+          ? <div style={{ textAlign:'center', padding:'64px 0', color:'#AEAEB2' }}>
+              <div style={{ fontSize:44, marginBottom:12 }}>📅</div>
+              <div style={{ fontSize:16, fontWeight:500, color:'#6E6E73' }}>Sin resultados</div>
+              <div style={{ fontSize:13, marginTop:5 }}>Probá con otro filtro</div>
+            </div>
+          : Object.entries(grouped).map(([mes,items])=>(
+              <div key={mes}>
+                <div style={{ fontSize:12, fontWeight:700, color:'#8E8E93', letterSpacing:'.7px', textTransform:'uppercase', padding:'18px 2px 8px' }}>{mes}</div>
+                {items.map(row=><Card key={row.id} row={row} onEdit={setEditing} onToggle={toggle} onDelete={del}/>)}
+              </div>
+            ))
+        }
+      </div>
+
+      {editing && <Sheet title="Editar efeméride" row={editing} onSave={saveEdit} onClose={()=>setEditing(null)}/>}
+      {adding  && <Sheet title="Nueva efeméride"  row={null}    onSave={saveNew}  onClose={()=>setAdding(false)}/>}
+
+      {toast && (
+        <div style={{ position:'fixed', bottom:32, left:'50%', transform:'translateX(-50%)', background:'rgba(28,28,30,.94)', backdropFilter:'blur(16px)', color:'#fff', padding:'10px 22px', borderRadius:22, fontSize:14, fontWeight:500, zIndex:300, animation:'toastIn .2s cubic-bezier(.32,1,.28,1)', whiteSpace:'nowrap', boxShadow:'0 8px 32px rgba(0,0,0,.15)', letterSpacing:'-.1px' }}>
+          {toast}
+        </div>
+      )}
     </div>
   )
 }
